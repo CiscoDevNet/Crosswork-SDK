@@ -1,0 +1,1641 @@
+syntax = "proto3";
+option go_package = "github3.cisco.com/ROBOT/robot-api/golang/auto-assurance/api/hpmgr";
+option java_package = "com.cisco.robot.proto.autoassurance.api.hpmgr";
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+service AaHeuristicPackage {
+
+    // Validate the HP elements inside the package and return the status.
+    rpc ValidateImportHPPackage (ImportHpReq) returns (ImportHpValidateResp) {
+        option (google.api.http) = {
+            post: "/validate"
+            body: "*"
+        };
+    }
+
+    // Import the HP elements inside the package and return the status.
+    rpc ImportHPPackage (ImportHpReq) returns (ImportHpResp) {
+        option (google.api.http) = {
+            post: "/hpImport"
+            body: "*"
+        };
+    }
+
+    // Export the HP elements from the HP database and return the compressed tar of the elements.
+    rpc ExportHpPackage (ExportHpReq) returns (ExportHpResp) {
+        option (google.api.http) = {
+            post: "/hpExport"
+            body: "*"
+        };
+    }
+
+    // Get the HP details for the given namespace.
+    rpc GetHpDetails (HpRequest) returns (HpResponse) {
+        option (google.api.http) = {
+            post: "/hpDetails/query"
+            body: "*"
+        };
+    }
+
+    // Get the matching rule and config profile for the given service_key.
+    rpc GetRuleAndConfigProfile (RequestAssuranceOptionsDetails) returns (ResponseAssuranceOptionsDetails) {
+        option (google.api.http) = {
+            post: "/assuranceOptions/query"
+            body: "*"
+        };
+    }
+
+    // Create a config profile with the given values and return the status.
+    rpc CreateConfigProfile (RuleConfigProfile) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            post: "/createConfigProfile"
+            body: "*"
+        };
+    }
+
+    // Update the given config profile and return the status.
+    rpc UpdateConfigProfile (RuleConfigProfile) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            put: "/updateConfigProfile"
+            body: "*"
+        };
+    }
+
+    // Delete the config profile and return the status.
+    rpc DeleteConfigProfile (RuleConfigProfile) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            delete: "/deleteConfigProfile"
+            body : "*"
+        };
+    }
+
+    // Create a rule class with the given values and return the status.
+    rpc CreateRuleClass (RuleClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            post: "/createRule"
+            body: "*"
+        };
+    }
+
+    // Update the given rule class and return the status.
+    rpc UpdateRuleClass (RuleClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            put: "/updateRule"
+            body: "*"
+        };
+    }
+
+    // Delete the given rule class and return the status.
+    rpc DeleteRuleClass (RuleClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            delete: "/deleteRuleClass"
+            body : "*"
+        };
+    }
+
+    // Create a subservice class with the given values and return the status.
+    rpc CreateSubServiceClass (SubserviceClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            post: "/createSubServiceClass"
+            body: "*"
+        };
+    }
+
+    // Update the given subservice class and return the status.
+    rpc UpdateSubserviceClass (SubserviceClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            put: "/updateSubserviceClass"
+            body: "*"
+        };
+    }
+
+    // Delete the given subservice class and return the status.
+    rpc DeleteSubserviceClass (SubserviceClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            delete: "/deleteSubserviceClass"
+            body : "*"
+        };
+    }
+
+    // Create a metric class with the given values and return the status.
+    rpc CreateMetricClass (MetricClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            post: "/createMetricClass"
+            body: "*"
+        };
+    }
+
+    // Update the given metric class and return the status.
+    rpc UpdateMetricClass (MetricClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            put: "/updateMetricClass"
+            body: "*"
+        };
+    }
+
+    // Delete the given metric class and return the status.
+    rpc DeleteMetricClass (MetricClass) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            delete: "/deleteMetricClass"
+            body : "*"
+        };
+    }
+
+    // Create a plugin with the given values and return the status.
+    rpc CreatePlugin (Plugin) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            post: "/createPlugin"
+            body: "*"
+        };
+    }
+
+    // Update the given plugin and return the status.
+    rpc UpdatePlugin (Plugin) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            put: "/updatePlugin"
+            body: "*"
+        };
+    }
+
+    // Delete the given plugin and return the status.
+    rpc DeletePlugin (Plugin) returns (HpCrudResponse) {
+        option (google.api.http) = {
+            delete: "/deletePlugin"
+            body : "*"
+        };
+    }
+}
+
+message MetricImpl {
+
+    // Maps the result of the metric to a normalized output value. This allows for consistent interpretation across devices
+    // Example:
+    // "value_mapping": {
+    //          "values": {
+    //                    "dest-active": "active",
+    //                    "dest-not-active": "not-active"
+    //                    "1": "active",
+    //                    "2": "not-active"
+    //                    "true": "active"
+    //                    "false": "not-active"
+    //                   },
+    //                "default": null
+    // }
+    message ValueMapping {
+        map<string, string> values = 1;
+    }
+
+    // Post processing is needed when one device platform reports, say memory, in Megabytes while the other device
+    // platform returns it as bytes. This discrepancy can also potentially raise within same platform when different
+    // implementations -- SNMP, gNMMI etc are used.
+    //    "device_output_labels": ["metric_output1", "metric_output2"],
+    //    "post-processing": "metric_output1 / 1000 + metric_outpu2 / 1000"
+
+    // Metric collected using telemetry plugin
+    message MdtMetric {
+        //  Exact YANG path of the subtree to get the current metric.
+        //  Examples:
+        //   * `openconfig-interfaces:interfaces/interface[name=GigabitEthernet0/0/0/2]/
+        //      subinterfaces/subinterface[index=600]/state/admin-status`
+        //      (subtree of one node) the administrative status of subinterface 600 of interface GigabitEthernet0/0/0/2
+        //   * `openconfig-interfaces:interfaces/interface[name=tunnel-ip13]/state/counters`
+        //      (subtree of height one) all counters of interface tunne-ip13
+        //   * `openconfig-interfaces:interfaces/interface[name=tunnel-ip13]/state/counters/in-errors`
+        //       (subtree of one node) the number of input errors on ineterface tunnel-ip13
+        string sensor_path_exact = 1;
+        //  Longest prefix for which the target router will actually return some value when configured.
+        //  Example: configuring the sensor path on a IOS-XRV router
+        //           `openconfig-interfaces:interfaces/interface[name=tunnel-ip13]/state/counters/in-errors`
+        //  will not work (not resolved). However, configuring the sensor path
+        //           `openconfig-interfaces:interfaces/interface[name=tunnel-ip13]/state/counters`
+        //  will return a bag contaning the wanted value.
+        //  Pipeline would then retrieve the specific leaf under this subtree (in this case the value of
+        //  `in-errors`) and assign it to the metric.
+        // In Crosswork, there's limitation on the number of collection jobs that can be supported. As of this writing,
+        // the cap is at about 1000 jobs. Because of this, AA needs to subscribe at gather path level and perform
+        // filtering on the resultant metric bag to get to desired leaf that corresponds to given metric.
+        // Hence, for all deployment purposes, this field should be set to valid gather path. In the current example,
+        // that would be `openconfig-interfaces:interfaces/interface`
+        string sensor_path_config = 2;
+    }
+
+    message GnmiMetric {
+        // MDT corresponding comments apply to below gNMI fields
+        string sensor_path_exact = 1;
+        string sensor_path_config = 2;
+        // Specify origin if it is different from the Yang module
+        // For XE, the origin needs to be specified as "rfc7951"
+        // For XR, this field can be left empty.
+        // When this field is left empty, AA shall attempt to extract the yang module name from the sensor path and
+        // use the module name as the value for origin.
+        string origin = 3;
+        // bool event_driven = 3; Not supported
+    }
+
+    message CliTextfsmMetric {
+        //  Command to be executed for producing the values to extract
+        string command = 1;
+        //  Normal regex (None) or path to template file for textFSM (value 'textfsm')
+        string regex_type = 2;
+        //  TBD: Identify the regex standard supported by Golang library and mention that the below regex should comply
+        //       to that grammar. For eg if Golang supports REGEXP 2, then the comment should say that this regex
+        //       should comply to REGEXP-2 notation.
+        string regex = 3;
+        //  Key (of the dictionary produced by applying the regex on the command output)
+        //   to use for selecting the result.
+        repeated string key = 4;
+    }
+    // Non parameterized Cli metric
+    message CliMetric {
+        string sensor_path_config = 1; // "sensor_path_config" to track the template sensor path
+        string sensor_path_exact = 2; // "sensor_path_exact" is the path Scheduler will use in metric spec for pipeline to do filtering
+        string device_package_name = 3; //"device_package_name" and "function_name" are required for CLI device-package Template
+        string function_name = 4;
+    }
+
+    message SnmpMetric {
+        string oid_path_config=1;
+        string oid_path_exact=2;
+    }
+
+    // "GNMITemplateMetric": {
+    //   "sensor_path_exact": "Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/vrfs/vrf[vrf-name={vrf}]/sessions/session[neighbor-address={neighbor-ip}]/connection-state",
+    //   "sensor_path_config" : "Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/vrfs/vrf[vrf-name={vrf}]/sessions/session[neighbor-address={neighbor-ip}]/connection-state"
+    //   "sensor_path_device_feed": "Cisco-IOS-XR-ipv4-bgp-oper:bgp/instances/instance/instance-active/vrfs/vrf[vrf-name={vrf}]/sessions/session"
+    //  }
+    message GnmiTemplateMetric {
+        string sensor_path_exact = 1;
+        string sensor_path_config = 2;
+        string sensor_path_device_feed = 3; // encoding path
+        // Specify origin if it is different from the Yang module
+        // For XE, the origin needs to be specified as "rfc7951"
+        // For XR, this field can be left empty.
+        // When this field is left empty, AA shall attempt to extract the yang module name from the sensor path and
+        // use the module name as the value for origin.
+        string origin = 4;
+    }
+
+    // "CLITemplateMetric": {
+    //      "sensor_path_config": "show cef {prefix}",
+    //      "sensor_path_exact": "route/next-hop".
+    //      "device_package_name": "showcefprefix",
+    //      "function_name": "getCefPrefixInfo"
+    //  }
+    message CliTemplateMetric {
+        string sensor_path_config = 1; // "sensor_path_config" to track the template sensor path
+        string sensor_path_exact = 2; // "sensor_path_exact" is the path Scheduler will use in metric spec for pipeline to do filtering
+        string device_package_name = 3; //"device_package_name" and "function_name" are required for CLI device-package Template
+        string function_name = 4;
+    }
+
+    //  Any one of the implementation : MDt,SNMP,CLI, GNMITemplate, CliTemplate
+    oneof Metrics {
+        MdtMetric MDTMetric = 1;
+        //CliMetric CLIMetric = 2; Not supported in MVP-1
+        SnmpMetric SNMPMetric = 3;
+        GnmiMetric GNMIMetric = 4;
+        GnmiTemplateMetric GNMITemplateMetric = 5;
+        CliTemplateMetric CLITemplateMetric = 6;
+        CliMetric  CLIMetric = 7;
+    }
+
+    // Higher the value, higher the precedence
+    uint32 precedence = 8;
+
+    // Convert the input argument to this Metric Class instance before substituting its value in the
+    // sensor paths and OIDs. These conversions come handy in scenarios like below:
+    //   ServiceConfig provides, say, ifName as 'GigabitEthernet0/0/5 612' but the ifName in the incoming
+    //   SNMP feed comes as 'Gi0/0/5.SI.612'. If Pipeline attempts to find a match using the ifName argument
+    //   value as is, then pipeline would not find a matching interface.
+    // This is where the conversions come into play. The incoming argument value, in this case 'ifName', needs to
+    // go through some conversions before the resultant value can be used to filter the interface entry of interest
+    // from the incoming SNMP feed.
+    //    In the above example scenario, the conversions of interest are:
+    //           - Substitute 'GigabitEthernet' with 'Gi'
+    //           - Substitute ' ' with '.SI.'
+    //    Above conversions effectively transform 'GigabitEthernet0/0/5 612' -> 'Gi0/0/5.SI.612'
+    //
+    message ArgConversions {
+        // arg_substitutes identifies each pattern(map key) and the value to be replaced with(map value)
+        // Substitution are performed in the order in which
+        message ArgSubstitutes {
+            string from = 1;
+            string to = 2;
+        }
+        repeated ArgSubstitutes arg_substitutes = 1;
+    }
+    map<string, ArgConversions> convert_args = 9;
+
+    ValueMapping val_mapping = 10;
+    repeated string device_output_labels = 11;
+    string post_processing_expr = 12;
+
+    // only_when expresses the condition that needs to be satisfied in order to select a given implementation.
+    // Given implementation can have the highest precedence value but if the only_when condition is not satisfied then
+    // respective implementation will not be selected.
+    // Currently only below 2 conditions are supported:
+    //     "AddressFamily({<metric-param>}) == 'ipv4'"
+    //     "AddressFamily({<metric-param>}) == 'ipv6'"
+    // Example, say metric param name is 'peer-ip-addr', then valid only_when expressions are:
+    //     "AddressFamily({peer-ip-addr}) == 'ipv4'"
+    //     "AddressFamily({peer-ip-addr}) == 'ipv6'"
+    // only_when helps abstract out ipv4 vs ipv6 implementation specific differences like MIB OID or Yang module etc
+    string only_when = 13;
+}
+
+message MetricClass {
+
+    string id = 1;
+    string name = 2;
+
+    // Namespace to which MetricClass belongs
+    string namespace = 3;
+    string description = 4;
+
+    // This display label shall be used as the 24hr Metric Chart label
+    string display_label = 5;
+
+    message Param {
+        string description = 1;
+    }
+    // Parameter defines the param and the corresponding description
+    map<string, Param> parameters = 6;
+
+    //
+    // if_empty :
+    // Can this Metric be missing in the received metric feed from the device?
+    // For example, counters have to be present all time. But, on the other hand, state of a given interface may not be
+    // present depending on whether or not a given interface is actually configured or not. Or, another example
+    // would be that a route to a given destination may not be present at all when the route is not reachable.
+    // For these cases, we require the metric to take on a default value like 'NoRouteFound' in case of the above
+    // route table example.
+    // if_empty field determines the default value to report for expression processing when filtering pipeline doesn't
+    // find a match for sensor_path_exact in the incoming feed.
+    // How to specify if_empty value in Metric definition:
+    //     "bool_t": {
+    //        "if_empty": "false"
+    //     }
+    // Or,
+    //     "string_t": {
+    //        "if_empty": "NoRouteFound"
+    //     }
+    //
+    // output_values :
+    // What values does this metric return? In case of list type, the possible values for each list element
+    //
+    message StringType {
+        //  if_empty : optional
+        //  Value to be associated to the metric if it returns an empty value. It is useful when
+        //  no value is an interesting information in by itself but it doesn't make sense for all metrics
+        //  If not empty then the value of this field shall be assigned as the default value for this metric.
+        string if_empty = 1;
+
+        // If device feed is of enum type, then they are converted to corresponding string values.
+        //     enum { init, start, end } ==> Translates to string literals:  'init', 'start', 'end'
+        // This field can be left empty(optional, in which case AA will take all the values from mapping field
+        // at face value and not perform any validation. If this field is not empty then AA will perform check
+        // and validate whether all the values specified in the mapping are a subset of this list.
+        repeated string output_values = 2;
+    }
+    message BoolType {
+        //  if_empty : optional
+        //  Value to be associated to the metric if it returns an empty value. It is useful when
+        //  no value is an interesting information in by itself but it doesn't make sense for all metrics.
+        //  If not empty then boolean equivalent value of this field shall be assigned as the default value for this metric.
+        //  This field is intentionally not defined as of bool type, in order to distinguish from the cases where
+        //  absence of value is expected to be reported as monitoring failure.
+        //  Valid values to assign to this field: 'true' or 'false'. Any other value shall be treated invalid.
+        string if_empty = 1;
+
+        // output values for bool are obvious -- 'true' and 'false'. Hence no need to call them out explicitly.
+    }
+    message IntType {
+        //  if_empty : optional
+        //  Value to be associated to the metric if it returns an empty value. It is useful when
+        //  no value is an interesting information in by itself but it doesn't make sense for all metrics
+        //  If not empty then the value of this field shall be assigned as the default value for this metric.
+        string if_empty = 1;
+
+        // Use this only when there are small number of discrete integer values.
+        // If full range is needed or the set is large to specify in the metric definition then leave it as zero.
+        repeated int64 output_values = 3;
+    }
+
+    // Given metric can be of list(or non-list) of type bool, string, integer or float
+    message MType {
+        oneof type {
+            StringType string_t = 1;
+            BoolType bool_t = 2;
+            IntType int_t = 3;
+
+            // Float types are used by counters. Hence they don't require constructs like 'if_empty' & 'output_values'
+            float float_t = 4;
+        }
+    }
+
+    // metricClass is list or non-list of Mtype
+    MType m_type = 7;
+    bool m_list = 8;
+
+    // Polling frequency for this metric. Unit is seconds. Default cadence is 30sec.
+    // Any value less than or equal to 30 shall be defaulted to 30sec.
+    uint32 cadence = 9;
+
+    // Metric Implementation: Can be CLI,SNMP or MDT along with their precedence.
+    map<string, MetricImpl> implementations = 10;
+
+    message OsMatch {
+        // type of match: can be "exact_match" for os_model or "version_range" for os_version
+        string type = 1;
+        // list of os_model or os_version to be matched
+        repeated string match = 2;
+        // defines start of  os_version range
+        /*
+        Example:
+             a) If a path is valid for all versions starting from "7.4.1.28I" and above then version_range can be
+                specified as:
+                    "os_version": {
+                    "type": "version_range",
+                    "start": "7.4.1.28I"
+                    }
+                    The start version specified here is "inclusive"
+            b) If a path is valid for all versions only upto "7.4.1.27I" and below then version_range can be
+                specified as:
+                    "os_version": {
+                    "type": "version_range",
+                    "end": "7.4.1.27I"
+                    }
+                    The end version specified here is "inclusive"
+           c) If a path is valid from version "1.1.1" to "1.4.4" and all in-between versions the range can be
+              specified as:
+                    "os_version": {
+                    "type": "version_range",
+                    "start": "1.1.1"
+                    "end": "1.4.4"
+                    }
+             Both start and end version are "inclusive" i.e. start version <= x <= end version
+          d) For "os_version", if the device version matches any version provided in the list of "match",  OR,
+                   if it satisfies the "start" and "end" version range requirement, then the device version is
+                   considered as a match. Both "start" and "end" versions are inclusive.
+                    "os_version": {
+                   "type": "version_range",
+                   "match": [
+                   "6.6",
+                   "6.3",
+                   "6.5"
+                    ],
+                   "start": "1.1.1",
+                   "end": "2.2.2"
+                   }
+        */
+        string start = 3;
+        //  defines the end of os_version range
+        string end = 4;
+    }
+    message Matcher {
+        string implementation = 1;
+
+        // Set this flag to true when a given model/version is not supported for this metric.
+        // All not-supported metrics will be treated as a no-op equivalent value in their participating eval expressions
+        bool not_supported = 2;
+
+        // map key can be os_model, os_version
+        map<string, OsMatch> conditions = 3;
+        // Address family will indicate if the ipaddress is ipv4 or ipv6. If absent, the ip address should be considered ipv4.
+        // "address_family": "AddressFamily(ipAddress) ==  ipv4"
+        // "address_family": "AddressFamily(ipAddress) ==  ipv6".
+        string address_family = 4;
+    }
+    //  Matcher defines different implementation condition
+    repeated Matcher matcher = 11;
+    // Create timestamp for MetricClass
+    int64 create_timestamp = 12;
+    // Update timestamp for MetricClass
+    int64 update_timestamp = 13;
+    //current version of the metricClass
+    string   version = 14;
+    // This tag is used to identify the stream subscription for this metric.
+    // For example: Y1731_Probes for Y1731 metric classes and PCA_Probes for PCA/Accedian metric classes.
+    string streamSubscriptionTag = 15;
+}
+
+enum UnitType {
+    NA = 0; // Not Applicable
+    MBPS = 1; // Million Bits per second
+    MSEC = 2; // Millisecond
+    USEC = 3; // Microsecond
+    SEC = 4; // Second
+    PERCENT = 5; // Percentage
+    GB = 6; // GigaBytes
+    BYTES = 7; // Bytes
+}
+
+enum ConfigParamType {
+    VAL_UNKNOWN = 0;
+    VAL_INT = 1; // Integer value
+    VAL_FLOAT = 2; // float value
+    VAL_STRING = 3; // String value
+}
+
+enum MonitoringType {   // Specifies what kind of monitoring needs to be done.
+    BASIC = 0;          // Basic involves monitoring only 1 or 2 subservices.
+    ADVANCED = 1;       // Advanced involves monitoring more comprehensive set of Subservices.
+}
+
+message RuleConfigProfile {
+
+    message ConfigParam {
+
+        // Description that needs to be displayed in UI
+        string description = 1;
+
+        // UI tag will determine whether the constant needs to be displayed in UI
+        bool ui_tag = 2;
+
+        // TODO SK:LM We need clean up this proto and ensure all tests pass.
+        // Changes: remove 'type' field. oneof already provides this info.
+        //          move UnitType outside of individual messages -- IntVal etc.
+        ConfigParamType type = 6; // Type of param; int/float/string
+
+        message IntVal {
+            UnitType unit = 1; // If applicable, specifies the units. For eg if label is specifying Latency threshold
+            // then type could be int and unit could be Millisecond.
+            int64 val = 2;
+        }
+
+        message FloatVal {
+            UnitType unit = 1;
+            float val = 2;
+        }
+
+        oneof ConfigVal {
+            IntVal int_val = 3;
+            FloatVal float_val = 4;
+            string str_val = 5;
+        }
+    }
+
+    string id = 1; // Id would be same as name
+    string name = 2; // Profile Name
+    string namespace = 3; // Namespace to which Config Profile belongs
+    string description = 4; // Profile Description.
+
+    message CandidateRule {
+        string name = 1;
+        string namespace = 2;
+    }
+    repeated CandidateRule rules = 5;
+
+    // Subservices when being shared across different services can potentially inherit
+    // multiple profiles. 'Precedence' determines which profile should be adopted by the Subservice.
+    // Key is the name of the config param(eg name of the Threshold constant). Key should be all CAPS.
+    map<string, ConfigParam> values = 6;
+
+    // Create timestamp for ConfigProfile
+    int64 create_timestamp = 7;
+    // Update timestamp for ConfigProfile
+    int64 update_timestamp = 8;
+    //current version of the configProfile
+    string version = 9;
+}
+
+/*
+ * Sample payload for ConfigProfile:
+ Name: GoldProfile
+ Description: "Applies stringent thresholds for latency, jitter"
+ Precedence: 100
+ values: {
+   {
+     "LATENCY_HIGH_THRESHOLD",
+     ConfigParam:
+     {
+        description: "High Threshold value to evaluate latency."
+        type: INT,
+        unit: MSEC,
+        value: 50
+     }
+   },
+ }
+*/
+
+/* Request definition for Getting SubserviceClass and RuleClass */
+/*
+   TOOD ISHU (from LM):
+     - Rename these requests to reflect the data being exchanged. Like, HpElementRequest, HpElementResponse.
+     - This API should be callable both from within Cw system(via NATS) and from NB(via REST)
+     - Make use of namespace field(when present) to arrive at HpElementId.
+     - Support 2 types of data output for Subservice related queries:
+          (1) Expanded Subservice Class definition : return HpSubserviceClass (ExpOrch requests for this data)
+          (2) Subservice Class definition: return SubserviceClass (NB User/UI requests for this data)
+*/
+message RequestData {
+
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        SUBSERVICE_CLASS = 1;     /* TODO ISHU: This should return SubserviceClass. */
+        HP_SUBSERVICE_CLASS = 2; /* TODO ISHU: This should return HpSubserviceClass */
+        RULE_CLASS = 3;
+        METRIC_CLASS = 4;
+        RULE_CONFIG_PROFILE = 5;
+        PLUGIN = 6;
+    }
+    string id = 1;
+    string namespace = 2;
+    Type type = 3;
+}
+
+/* TODO ISHU: Requires changes to align with above TODOs */
+message ResponseData {
+
+    oneof OutputData {
+        /* SubserviceClass subservice_class = 1; */
+        HpSubserviceClass subservice_class = 2; /* TODO ISHU: Rename this to hp_subservice_class and then uncomment the above field definition */
+        RuleClass rule_class = 3;
+        MetricClass metric_class = 4;
+        RuleConfigProfile config_profile = 5;
+        Plugin plugin =6;
+    }
+    // if there is any error while trying to build the OutputData will be captured here.
+    string error = 7;
+}
+
+/* Request to fetch all heuristics package definitions in a given namespace */
+message HpRequest {
+    string namespace = 1;
+}
+
+/* Response providing the list of Hp definitions that match given namespace */
+message HpResponse {
+    string namespace = 1;
+    repeated RuleClass rules = 2;
+    repeated RuleConfigProfile profiles = 3;
+    repeated SubserviceClass subservices = 4;
+    repeated MetricClass metrics = 5;
+    repeated Plugin plugins= 6;
+}
+
+
+// This will be used to publish the Hp notification
+message PublishHPNotification {
+
+    enum VersionType {
+        MINOR = 0;
+        MAJOR = 1;
+    }
+
+    VersionType version_type = 1;
+
+    oneof HpNotification {
+        HpSubserviceClass hp_subservice_class = 2;
+        RuleClass rule_class = 3;
+        MetricClass metric_class = 4;
+        RuleConfigProfile config_profile = 5;
+        Plugin plugin = 6;
+    }
+
+    message DynamicRuleNotificationDetail {
+      repeated string parentSsclass = 1;
+      bool parentRuleChanged = 2;
+      VersionType parentRulesVersion = 3;
+    }
+
+    oneof HpNotificationDetails {
+      DynamicRuleNotificationDetail dynamic_rule_notification_details = 7;
+    }
+}
+
+/* API to request AA for eligible Rule & Profiles for given service Id and type */
+message RequestAssuranceOptionsDetails {
+    string serviceKey = 1;
+}
+
+/* API Response: Provides list of rules(defaults to 1 for MVP-1 release) and config profiles */
+message ResponseAssuranceOptionsDetails {
+    string serviceKey = 1;
+    message SubserviceClassInfo {
+        string id = 1;
+        string name = 2;
+        string namespace = 3;
+    }
+
+    message RuleProfileOption {
+        string ruleClassId = 1;
+        string ruleClassName = 2;
+        string ruleClassNs = 3;
+        string ruleClassDescription = 4;
+        repeated SubserviceClassInfo subservice_classes = 5;
+        repeated RuleConfigProfile config_profiles = 6;
+        repeated string profile_constants = 7;
+        MonitoringType monitoring_type = 8;
+    }
+    repeated RuleProfileOption rule_profile_options = 2;
+}
+
+/*
+ *  Rule Class definition.
+ */
+message RuleClass {
+    //  Name of the rule. Unique.
+    string name = 1;
+
+    // Namespace to which this Rule belongs
+    string namespace = 2;
+
+    // Rule Id - UUID
+    string id = 3;
+
+    // Description of the class
+    string description = 4;
+
+    /* Not supported for MVP-1
+    repeated HPElemParam params = 5; // This list will have single element of type Meta.
+    // RuleConfigProfile shall be passed as argument to this Rule.
+    // Profile consists of definitions of all the constants that this Rule
+    // may potentially make use.
+    */
+
+    // What services to match
+    message MatchCriterion {
+        enum ConfigSourceType {
+            SOURCE_TYPE_UNSPECIFIED = 0;
+            SOURCE_TYPE_NSO = 1;
+            SOURCE_TYPE_CNC = 2;
+            SOURCE_TYPE_DYNAMIC_PAYLOAD = 3;
+        }
+
+        enum MatchType {
+            MATCH_TYPE_UNSPECIFIED = 0;
+            MATCH_TYPE_XPATH = 1;
+            MATCH_TYPE_PARAM = 2;
+        }
+
+        enum ConfigSubSource {
+            SUBSOURCE_SERVICE_CONFIG = 0;
+            SUBSOURCE_DEVICE_CONFIG = 1;
+            SUBSOURCE_SERVICE_PLAN = 2;
+        }
+
+        ConfigSourceType configSource = 1;
+        // ConfigSubSource - defines the list of config subSources.
+        // ConfigSubSource for the dynamic rule is not allowed to be explicitly mentioned as it gets inherited from
+        // the parent service Rule
+        repeated ConfigSubSource configSubSource = 6;
+        MatchType matchType = 2;
+        string match_expression = 3; // XPath to match
+        //match prefix will be used to identify the root for generating the xmlBlob for the ruleParams in Dynamic SubserviceClass
+        string match_prefix = 4;
+        //match_params is an optional field. It will be verified against the dynamic SubserviceClass ruleparams.
+        repeated string match_params = 5;
+
+        message ServiceElementConfiguration {
+            // ID for the Service Element rule
+            string service_element_id = 1;
+
+            // Service Element rule
+            string service_element_rule = 2;
+
+            // Namespace to which this Service Element rule belongs
+            string namespace = 3;
+        }
+        repeated ServiceElementConfiguration service_element_config = 7;
+    }
+
+    repeated MatchCriterion match_criteria = 6;
+
+    message Dependency {
+
+        string name = 1;
+        string id = 2;
+
+        string ss_class = 3;
+        string namespace = 4;
+
+        enum Type {
+            DEP_TYPE_NON_LIST = 0;
+            DEP_TYPE_LIST = 1;
+        }
+
+        // Indicates whether there are multiple dependencies of this subservice type
+        Type type = 5;
+
+        // By default all dependencies are treated as mandatory. So, error will be thrown when a given dependency's
+        // params could not be resolved. On the other hand, certain dependencies are conditional upon certain service
+        // config or oper data. In these cases, These dependencies should be set as optional to be silently ignored
+        // when their respective params do not resolve.
+        bool optional = 6;
+
+        message Parameter {
+            enum Type {
+                DEP_PARAM_UNSPECIFIED = 0;
+                DEP_PARAM_VALUE = 1;
+                DEP_PARAM_XPATH = 2;
+                DEP_PARAM_PLUGIN_OUTPUT = 3;
+                DEP_PARAM_NATIVE_OUTPUT = 4;
+            }
+
+            string name = 1;
+
+            // This field is applicable only when current dependency is of list type.
+            // When set to True, one dependency shall be generated for each element in the extract_value
+            bool iterator = 2;
+
+            // Set the default value for a given Parameter, when its possible that none of 'extraction_details' will be
+            // successful in extracting the value for this Parameter.
+            // For example, in case of Y.1731, a node may be configured only to measure Jitter but not Loss. In these
+            // cases, we still would like tp spawn the Subservice related to Y.1731 but skip the Loss related
+            // computations. Setting some default value, allows respective Subservice to tweak its eval expression
+            // accordingly.
+            // If value could not be extracted and default_value is not set then Rule Dependency will be dropped
+            // if the dependency is optional. If Dependency is not optional then, failure will be generated and
+            // Service will be marked as monitoring failed.
+            string default_value = 3;
+
+            Type extraction_method = 4;
+
+            message ExtractionDetail {
+                string description = 1;
+                string extract_value = 2;
+            }
+
+            repeated ExtractionDetail extraction_details = 5;
+        }
+
+        message ParamExtractionMechanism {
+            enum Mode {
+                EXTRACT_MODE_UNSPECIFIED = 0;
+                EXTRACT_MODE_VALUE = 1;
+                EXTRACT_MODE_XPATH = 2;
+                EXTRACT_MODE_CUSTOM_PLUGIN = 3;
+                EXTRACT_MODE_NATIVE_METHOD = 4;
+            }
+            Mode mode = 1;
+            string name = 2; // Plugin name in case of CUSTOM_PLUGIN. Function name in case of Native Method.
+            string namespace = 3; // Namespace corresponding to this plugin. For native methods, defaults to 'system'
+            string version = 4; // Plugin version
+            uint64 validation_hash = 5; // Hash value of the dropped in custom plugin. For validation purposes.
+            string plugin_method = 6; // method user wants to execute in the user plugin
+            repeated string extracted_params = 7;
+            string native_method = 8; // Name of the embedded golang method used to extract params for current dependency
+            // Layout the infra needed to support xpath resolved values to be passed as args to native method.
+            // repeated Parameter native_method_args = 9; // Arguments to be passed to the native method
+        }
+
+        ParamExtractionMechanism param_extraction_mechanism = 8;
+        repeated Parameter parameters = 9;
+        repeated string sub_dependencies = 10;    // Hard dependencies => If the health status is down/degraded for any
+                                                 // of these sub dependencies then the health of current Subservice
+                                                 // is automatically declared as down/degraded.
+        repeated string soft_sub_dependencies = 11;    // Soft dependencies. Unlike hard dependencies, soft dependencies
+                                                       // do not impact the health status of the current Subservice
+                                                       // and thus have no impact on the final Service health status.
+                                                       // Soft dependencies are defined when we cannot establish a direct
+                                                       // correlation between two Subservice.
+                                                       // Example: InterfaceHealth --[soft-dep]--> DeviceHealth
+    }
+    repeated Dependency dependencies = 7;      // Each dependency can point to another dependency in a nested
+                                               // fashion(Graph of dependencies). Relationship between the
+                                               // dependencies can be hard or soft.
+    repeated string soft_root_dependencies = 8; // List of root nodes that have a soft relationship with the service node.
+                                                // Contains list of dependency 'name'(s). Actual definition for the given
+                                                // name in this list, should be present & defined in the 'dependencies' list.
+
+    // TODO: Version field? But User may not correctly upgrade the version? How do we deal with such cases?
+    int64 create_timestamp = 9;
+    int64 update_timestamp = 10; //  Time when this SubserviceClass definition last got updated.
+
+    MonitoringType monitoring_type = 11;
+    //current version of the ruleClass
+    string   version = 12;
+}
+
+/*
+ *  Plugin information.
+ */
+message Plugin {
+    //  Generated.
+    string id = 1;
+    //  Name of the plugin.
+    string name = 2;
+    // Namespace to which this Plugin belongs
+    string namespace = 3;
+    // Content of the plugin file in bytes format.
+    bytes content = 4;
+    // Create timestamp for Plugin
+    int64 create_timestamp = 5;
+    // Update timestamp for Plugin
+    int64 update_timestamp = 6;
+    //current version of the plugin
+    string  version = 7;
+}
+
+message HPElemParam {
+    //  Name of this parameter. Examples: DEVICE, IFNAME.
+    string name = 1;
+    string description = 2;
+
+    /*
+        ParamType allows HPMgr to interpret the nature of the argument values passed while instantiating
+        HP Elements like Rule, Subservice etc.
+    */
+    enum Type {
+        PARAM_TYPE_NON_LIST = 0;
+        PARAM_TYPE_LIST = 1;
+    }
+    Type type = 3;
+}
+
+
+message SubserviceClass {
+    // Defines the feature this subservice class is meant to monitor. Like LinkHealth, IP-Reachability etc
+    // Generated
+    string id = 1;
+
+    //  Name of the subservice class.
+    string name = 2;
+
+    //  Namespace to which subservice class belongs
+    string namespace = 3;
+
+    // Description of the class
+    string description = 4;
+
+    /*
+       Contains list of parameters keys that are used by this Subservice class
+       These need to be passed as arguments while instantiating respective Subservices.
+     */
+    repeated HPElemParam params = 5;
+
+    message LiveMetric {
+    /*
+       Live Metrics:
+       A Subservice may need to report live metrics(not necessarily real-time) in addition to its overall health status.
+       Example: Subservice monitoring the health of SR Policies, needs to report latency, jitter and packet loss
+       along with its consolidated health status computed by comparing these metrics against some threshold values.
+       Subservice Class allows a set of metrics to be identified as live metrics. Feed for these metrics will be reported
+       periodically by Expression Tracker. These metrics will be persisted by Subservice instances to aid subsequent queries.
+       If these Metrics need to be aggregated at the service level then the same can be called out by setting
+        service_level_aggregation_method.
+       Aggregation is supported for metrics of the same type. In other words, if Latency is specified as
+       Live Metric and aggregation_method is set to, say, Average then average of Latency metrics is taken across
+       instances of this Subservice Class that belong to a given service instance.
+       !! Caution: Please use Live Metrics sparingly as they can put significant stress on system's cpu/memory resources. !!
+    */
+        string metric_label = 1;// Metric identifier. This label should match the source of the metric listed in
+                                // SubesrviceClass 'dependencies' list.
+        string description = 2; // Short display-friendly description for this metric. UI could display this to User.
+        string threshold = 3;   // Refers to the constant defined in Config Profile. This field has no functional impact.
+                                // Used to provide a benchmark reference to the User looking at the metric value.
+                                // Example: threshold = 'LATENCY_MAX_THRESHOLD'. Similar to the constants specified
+                                // in the eval_expression strings, this constant too should be resolvable by respective
+                                // Config Profile associated with the service.
+                                // This field can be left empty.
+        enum ServiceLevelAggrLogic {
+            NONE = 0;      // No aggregation needed at service level
+            AVERAGE = 1;   // Take average of the values reported across subservice instances
+            MEDIAN = 2;    // Take median of the values reported across subservice instances
+            MODE = 3;      // Take mode of the values reported across subservice instances
+        }
+        ServiceLevelAggrLogic aggr_logic = 4;
+    }
+    map<string, LiveMetric> live_metrics = 6; // Key is UI display name like 'Latency', 'Jitter' etc
+
+    /*
+     Each SubserviceClass can contain a list of root expressions.
+     'activate_condition' defined for each element will determine whether the computation, represented by
+     'eval_expression', will be made part of the overall compute expression tree of that Subservice instance.
+
+     'activate_condition' should either be left empty or, if non-empty, should evaluate to 'true' to be part of
+     the compute expression tree. When an element is part of the compute expression tree then all corresponding metrics
+     will get scheduled for collection.
+
+     This conditional logic comes handy when a network feature has multiple parts to be monitored and each of these
+     parts can be selectively enabled/disabled by the Operator via service configuration.
+     Example: Y.1731 monitoring -- Latency, Jittter & Loss.
+     Each of these can be selectively enabled/disabled via Y.1731 configuration. If only Latency probes are configured
+     then Y.1731-Subservice should only be scheduling jobs for latency and none for jitter or loss.
+    */
+    message RootExpression {
+        string eval_expression = 1;
+        string activate_condition = 2;
+    }
+    repeated RootExpression root_expressions = 7;
+
+    DynamicConfig dynamic_config = 8;
+
+    //  Symptom text and the failed subexpressionss
+    message Symptom {
+        enum Level {
+            BROKEN = 0;
+            DEGRADED = 1;
+            WARNING = 2;
+            CRITICAL = 3;
+            INFO = 4;
+        }
+        string format_string = 1;
+        Level level = 2;
+        /* Lower the value, higher the priority.
+           Valid lowest value is 1. Hence, the highest priority is represented by '1'.
+           When this value is not explicitly defined in SubserviceClass, the value is defaulted to '255' in the backend.
+           This is the behavior applied even in case where priority in SubserviceClass is explicitly defined as '0'.
+        */
+        uint32 priority = 3;
+        /*
+            Preempt priority is used to determine whether a symptom should preempt another symptom that belongs
+            to the same preemption group. Example: When Interface Operational state is down due to Admin state
+            being down, then User would need to see only Admin down symptom and not Operational down symptom.
+            To make this happen, we group Admin down and Operational down symptoms under one preemption group --
+            any arbitrary string that identifies the group nature of these 2 symptoms. Then we assign higher
+            premption priority, say 1, to Admin associated symptom and lower premption priority, say 2,
+            to Oper associated symptom.
+            By default, no preemption is enabled i.e., all symptoms defined within a Subservice Class will
+            belong to the same group and have same default preempt_priority value 0.
+         */
+        uint32 preempt_priority = 4;
+        string preempt_group = 5;
+        /*
+           Determines whether to raise a symptom when its associated expression evaluates to true or false.
+           Default(false), raises symptom when the respective eval_expression evaluates to false.
+           If set to true, then symptom is raised when the respective eval_expression evaluates to true.
+        */
+        bool raise_when = 6;
+    }
+
+    Symptom symptom = 9;
+
+    message Dependency {
+        enum Type {
+            DEP_TYPE_UNSPECIFIED = 0;
+            //DEP_TYPE_SUBSERVICE = 1; Not supported for MVP-1
+            DEP_TYPE_EXPRESSION = 2;
+            DEP_TYPE_METRIC = 3;
+            //DEP_TYPE_RULE = 4; Not supported for MVP-1
+        }
+        Type type = 1;
+
+        // Label used to refer to this Dependency else where within this SubserviceType definition. Acts as key.
+        string label = 2;
+
+        //  Compute-expression to be evaluated by this dependency.
+        // TBD: Currently overloaded to provide ClassName for Subservice or Metric type of dependencies. Having separate fields might be better?
+        string eval_expression = 3;
+
+        // In case of Metric & Rule Dependency types, specify the namespace. If not specified, it defaults to
+        // current Subservice Class namespace.
+        string namespace = 4;
+
+        // LM: Commented this section. Revisit when we find a use case that requires conditionals at Dependency level.
+        // Condition to apply to this dependency. If this dependency should always be applied then leave it empty.
+        // Subservice Instance will evaluate this expression and figure whether or not to create this dependency.
+        // string match_expression = 4;
+
+        // Symptom to raise, if any. Valid for Dependency type 'Expression'
+        Symptom symptom = 5;
+
+        // Map of dependency Subservice/Metric params to current Subservice Class params
+        map<string, string> param_map = 6;
+
+        // Unique Id allocated by AA
+        string id = 7;
+
+    }
+    repeated Dependency dependencies = 10;
+
+    // Id allocated by HP for subservice expression
+    string expr_cid = 11;
+
+    // TODO: Version field? But User may not correctly upgrade the version? How do we deal with such cases?
+
+    //  Time when this SubserviceClass definition last got created/updated.
+    int64 create_timestamp = 12;
+    int64 update_timestamp = 13;
+
+   // Tags associates to the list of badge.
+   // For example: to display degraded badge against the device icon when either Device or Service-related
+   // VPN-interface degrades, user can assign tags to those classes.
+   // UI is expected to leverage these tags to determine which of the Subservices need to be displayed as badges
+  // against the device.
+    repeated string tags = 14;
+    //current version of the subServiceClass
+    string  version = 15;
+}
+
+// TBD: Pick an apt name. Structure meant to house SubserviceClass and default constants(or anything more) together.
+message KPIProfileScriptData_MovetoPulseAPIProto {
+    string profileID = 1;
+    string scriptID = 2;
+    map<string, google.protobuf.Any> defaultConstVals = 3;
+    SubserviceClass ssc = 4;
+}
+
+/*
+Sample payload for dynamic_dependencies
+"dynamicConfig": {
+    "ruleID": "rule.dynamic.l2vpn.sr.policy.subgraph system",
+    "ruleParams": [
+      {
+        "serviceId": "vpn-id"
+      },
+      {
+        "srpolicies": "srpolicy_list"
+      }
+    ],
+    "ruleTriggerConditions": {
+      "description": "Activate when atleast one dynamic SR Policy gets instantiated. Deactivate(dummy for now) when certain condition is met(3 policies). Update as long as number of discovered policies are less than 20.",
+      "activate": "Len(srpolicy_list) > 0",
+      "deactivate": "Len(srpolicy_list) > 2",
+      "update": "Delta(srpolicy_list) && Len(srpolicy_list) <= 20"
+    }
+  },
+*/
+message DynamicConfig {
+    // Dynamic Dependency for a  subservice.
+    // rule ID to be used by the subservice to compute the dynamic subservices.
+    string rule_id = 1;
+
+
+    // map of  params needed to build the dynamic subservice.
+    // key corresponds to ruleClass params and value corresponds to SSClass params
+    map<string, string>  rule_params = 2;
+
+    message RuleTriggerConditions {
+      string description = 1;
+      // Determines when to trigger the Rule and spawn child subservices.
+      string activate = 2;
+      // Determines when to delete all the child subservices.
+      string deactivate = 3;
+      // Determines whether current sub-graph needs to be evaluated with the new feed received.
+      string update = 4;
+    }
+
+    RuleTriggerConditions rule_trigger_conditions = 3;
+}
+
+message EvalExpressionOld {
+    EvalExpression leftArgument = 1;
+    EvalExpression rightArgument = 2;
+    string operation = 3;
+    message Arg {
+        string operation = 1;
+        EvalExpression value = 2;
+    }
+    message Value {
+        oneof literal {
+            string fromArg = 1;
+            string fromConstArg = 2;
+            string s = 3;
+            float f = 4;
+            int64 i = 5;
+            bool b = 6;
+        }
+    }
+
+    Value value = 4;
+    repeated Arg args = 5;
+
+    // Temporarily moved from below EvalExp. Ideally this should be within oneof as defined in EvaExp below
+    message ListCompExpression {
+        string item = 1;
+        EvalExpression itemList = 2;
+        EvalExpression transformer = 3;
+        EvalExpression filter = 4;
+    }
+    ListCompExpression lc = 6;
+}
+
+message EvalExpression {
+    // <leftArgument> + <rightArgument>
+    // <leftArgument> * <rightArgument>
+    message BinaryExpression {
+        EvalExpression leftArgument = 1;
+        EvalExpression rightArgument = 2;
+        string operation = 3;
+    }
+
+    // [ <transformer> for <iterm> in <itemList> : <filter> ]
+    message ListCompExpression {
+        string item = 1;
+        EvalExpression itemList = 2;
+        EvalExpression transformer = 3;
+        EvalExpression filter = 4;
+    }
+
+    // <name>(<arg1>, <arg2>...)
+    // ListOr(nh_list)
+    // ListAnd(nh_list)
+    // Delta(nh_list)
+    message NaryExpression {
+        string operation = 1; // Function Name
+        repeated EvalExpression args = 2; // Function arguments
+    }
+
+    message Value {
+        oneof literal {
+            string fromArg = 1;
+            string fromConstArg = 2;
+            string s = 3;
+            float f = 4;
+            int64 i = 5;
+            bool b = 6;
+        }
+    }
+
+    // <Arg0> ? <Arg1> : <Arg2>
+    // When operation == ifelse
+    //    <condition = Arg0> ? <ifbody = Arg1> : <elsebody = Arg2>
+    message TernaryExpression {
+        string operation = 1;
+        EvalExpression arg0 = 2;
+        EvalExpression arg1 = 3;
+        EvalExpression arg2 = 4;
+    }
+
+    oneof Type {
+        BinaryExpression bin = 1;
+        ListCompExpression lc = 2;
+        TernaryExpression tern = 3;
+        NaryExpression fn = 4;
+        Value val = 5;
+    }
+}
+
+message CompiledExpression {
+    repeated string variables = 1;
+    repeated string tgtVariables = 2;
+    repeated string constants = 3;
+    map<string, EvalExpression> astMap = 4;
+}
+
+message HpSubserviceClass {
+    // Generated
+    string id = 1;
+
+    // Subservice Class definition as received from NB User
+    SubserviceClass config = 2;
+
+    // Operational data that facilitates expression tree building and resolving dependencies
+    SubserviceClassOper oper = 3;
+
+    message metricsToResolve {
+        // metrics that have no dependency or the dependant metrics already resolved
+        repeated string metric_label = 1;
+        bool dependency_processed = 2 ;
+    }
+
+    message metricsInAC {
+        // List of metrics with their dependency levels.
+        // Index 0 metrics are ready to be scheduled. Index 1 metrics needs Index 0 metrics to be resolved first and so on.
+        repeated metricsToResolve metrics_to_resolve = 1;
+    }
+
+    // Metrics present in each activate condition. EO uses this to schedule the metrics before evaluating activate condition.
+    // For example "activate_condition": "delay_config == 'Enabled'" will have the map populated like :
+    // delay_config == 'Enabled':metrics_with_no_dep:<metric_label:\"delay_config\" >
+    map<string, metricsInAC> metrics_in_activate_condition = 4;
+}
+
+message SubserviceClassOper {
+    CompiledExpression compiled_expression = 1;
+}
+
+enum HPElemType {
+    // HP Import Export APIs
+    RULE = 0;
+    SUBSERVICE_CLASS = 1;
+    METRIC_CLASS = 2;
+    RULE_CONFIG_PROFILE = 3;
+    RULE_PYTHON_PLUGIN = 4; // TBD: Why not import python plugin along with other HP definitions? Why rely upon
+    // CNC Extensibility framework just for dropping plugins?
+    METRIC_CLI_TEXTFSM = 5;
+}
+
+message ExportHpReq {
+    // HP Export API - Allows User to export Heuristic Packages of a given namespace from Crosswork
+    string namespace = 1; // Primary namespace. Determines the set of HP files to archive and export
+}
+
+message ExportHpResp {
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+        RESP_STATUS_SUCCESS = 1;
+        RESP_STATUS_ERROR = 2;
+    }
+
+//    message ArchivePkg {
+//        string namespace = 1; // Namespace to which current HP belongs
+//        map<string, bytes> hp_elem_archives = 2; // One archive file for each HP element type -- Rule, Subservice ...
+//    }
+
+    Status status = 1; // Success or failure
+    string error_description = 2;
+    bytes file = 3;
+//    repeated ArchivePkg pkgs = 2; // MVP-1: List has just 1 element ie Archive file corresponding to primary namespace.
+//    // Future: Includes definitions from other namespaces provided primary namespace
+//    // definitions depend on them.
+}
+
+/* Sample payload for Export
+Req: "customHp"
+Resp:
+{
+  status: "SUCCESS",
+  pkgs: [
+    namespace: "customHP",
+    HPElemArchives: {
+      { "RULE", []rule_archive_bytes },
+      { "SUBESERVICES", []ss_archive_bytes }
+    }
+  ]
+}
+*/
+
+message ImportHpReq {
+    // Allows User to import custom Heuristic Package definitions into Crosswork
+    // Namespace to which the files in current archive belong
+    string namespace = 1;
+    // base64 enc string of tar file containing HP elements
+    string b64Content = 2;
+}
+
+message ImportHpResp {
+    // Response for the import custom Heuristic Package
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+
+        // Successfully imported all the files into the Heuristic Package
+        RESP_STATUS_SUCCESS = 1;
+
+        // For errors that occurs while handling initial validation of the request.
+        // eg. incorrect namespace or incorrect packaging
+        RESP_STATUS_INVALID_REQUEST = 2;
+
+        // For these errors, AA aborts the entire import process.
+        RESP_STATUS_STATIC_VALIDITY_ERROR = 3;
+
+        // No files get imported for this case.
+        // Import process went beyond static validation of HP definitions.
+        // Encountered errors while deploying the definitions into running
+        // Service instances making use of these definitions.
+        // Not a typical case. No rollback supported for these failures.
+        // User is expected to followup on each reported error and perform
+        // necessary corrective actions.
+        RESP_STATUS_RUNTIME_VALIDITY_ERROR = 4;
+    }
+
+    Status import_status = 1; // Success or failure
+
+    // Namespace to which ImportHP belongs
+    string namespace = 2;
+
+    // Error encountered while processing the request
+    string error = 3;
+
+    // Warnings enumerated for each heuristics package.
+    // string represents the name of HpElem which encountered warning
+    // Eg: "pkgWarnings":{
+    //    "metricclass":{
+    //      "files":{
+    //        "ImportAPI/MetricClass/metricSystem.json":{
+    //          "fileWarnings":[
+    //            "MetricClass with id: metric.device.cpu.load.neg custom is already present in Import heuristic package. Ignoring the duplicate MetricClass"
+    //          ]
+    //        }
+    //      }
+    //    }
+    //  },
+    map<string, ImportHpElemWarnings> pkg_warnings = 4;
+
+    // Errors enumerated for each heuristics package
+    // string represents the name of HpElem which encountered error
+    // Eg:  "pkgErrors":{
+    //    "configprofile":{
+    //      "files":{
+    //        "readFromFS/ConfigProfile/configProfL2VpnGold.json":{
+    //          "fileErrors":[
+    //            "invalid namespace: system. Ignoring the given file. Valid Namespace is: custom"
+    //          ]
+    //        }
+    //      }
+    //    },
+    map<string, ImportHPkgError> pkg_errors = 5;
+}
+
+message ImportHPkgError {
+    // Eg: "files":{
+    //        "readFromFS/ConfigProfile/configProfL2VpnGold.json":{
+    //           "fileErrors": [
+    //            "invalid namespace: system. Ignoring the given file. Valid Namespace is: custom"
+    //          ]
+    //        }
+    //      }
+    // key in the map files is fileName. For each fileName the value will be list of errors
+    message FileError {
+        // Error details for the file
+        repeated string file_errors = 2;
+    }
+    map<string, FileError> files = 1 ;
+}
+
+message ImportHpElemWarnings {
+    // eg: "files":{
+    //        "ImportAPI/MetricClass/metricSystem.json":{
+    //          "fileWarnings":[
+    //            "MetricClass with id: metric.device.cpu.load.neg custom is already present in Import heuristic package. Ignoring the duplicate MetricClass"
+    //          ]
+    //        }
+    //      }
+    // key in the map files is fileName. For each fileName the value will be list of warnings
+    message FileWarning {
+        // warning details from the file
+        repeated string file_warnings = 1;
+    }
+    map<string, FileWarning> files = 1;
+}
+
+message ImportHpValidateResp {
+    // Response for the importValidateAPI
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+
+        // Validation is successful
+        RESP_STATUS_SUCCESS = 1;
+
+        // For errors that occurs while handling initial validation of the request.
+        // eg. incorrect namespace or incorrect packaging
+        RESP_STATUS_INVALID_REQUEST = 2;
+
+        // error while validating the Import Package
+        RESP_STATUS_ERROR = 3;
+
+    }
+    // Success or failure
+    Status validation_status = 1;
+
+    // Error encountered while processing the request
+    string error = 2;
+
+    // Warnings enumerated for each heuristics package.
+    // string represents the name of HpElem which encountered warning
+    // Eg: "pkgWarnings":{
+    //    "metricclass":{
+    //      "files":{
+    //        "ImportAPI/MetricClass/metricSystem.json":{
+    //          "fileWarnings":[
+    //            "MetricClass with id: metric.device.cpu.load.neg custom is already present in Import heuristic package. Ignoring the duplicate MetricClass"
+    //          ]
+    //        }
+    //      }
+    //    }
+    //  }
+    map<string, ImportHpElemWarnings> pkg_warnings = 3;
+
+    // Errors enumerated for each heuristics package
+    // string represents the name of HpElem which encountered error
+    // Eg:  "pkgErrors":{
+    //    "configprofile":{
+    //      "files":{
+    //        "readFromFS/ConfigProfile/configProfL2VpnGold.json":{
+    //          "fileErrors":[
+    //            "invalid namespace: system. Ignoring the given file. Valid Namespace is: custom"
+    //          ]
+    //        }
+    //      }
+    //    },
+    map<string, ImportHPkgError> pkg_errors = 4;
+
+    // List of MetricClass from the files that is part of the package
+    repeated MetricClass metrics = 5;
+
+    // List of SubserviceClass from the files that is part of the package
+    repeated SubserviceClass subservices = 6;
+
+    // List of RuleClass from the files that is part of the package
+    repeated RuleClass rules = 7;
+
+    // List of RuleConfigProfile from the files that is part of the package
+    repeated RuleConfigProfile profiles = 8;
+}
+
+/* Sample payload for Error Response
+ImportHPResp {
+  importStatus: "ERROR",
+  pkgErrors: [
+    {
+       namespace: "customHP",
+       elemErrors: {
+         "RULES": {
+           name: "rule.l2vpn.p2p",
+           error: "Rule contains unresolved subservices -- 'subservice.l2vpn.ipsla'"
+         },
+         "SUBSERVICES": {
+         }
+       }
+    }
+  ]
+}
+*/
+
+message HpCrudResponse {
+    /* Response for the Hp Elem CRUD*/
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+        RESP_STATUS_SUCCESS = 1;
+        RESP_STATUS_ERROR = 2;
+    }
+
+    // Success or failure of the request
+    Status status = 1;
+    // reason for the error
+    string error_description = 2;
+    // name of the Hp Elem
+    string name = 3;
+    // namespace of the Hp Elem
+    string namespace = 4;
+
+}
+
+message HpmReconcileRequest {
+    // reconcile request with HPM for any missed updates after the given time_stamp.
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        SUBSERVICE_CLASS = 1;
+        HP_SUBSERVICE_CLASS = 2;
+        RULE_CLASS = 3;
+        METRIC_CLASS = 4;
+        RULE_CONFIG_PROFILE = 5;
+        PLUGIN = 6;
+    }
+    repeated Type type = 1;
+    // time stamp the caller can provide to get the updates happened after this time.
+    int64 time_stamp = 2;
+}
+
+message HpmReconcileResponse {
+    // reconcile response with Hp Element updates that happened after the time_stamp given in the request.
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+        RESP_STATUS_SUCCESS = 1;
+        RESP_STATUS_ERROR = 2;
+    }
+
+    // Success or failure
+    Status status = 1;
+    // to return the error to caller
+    string error = 2;
+
+    repeated RuleClass rules = 3;
+    repeated RuleConfigProfile profiles = 4;
+    repeated SubserviceClass subservices = 5;
+    repeated MetricClass metrics = 6;
+    repeated Plugin plugins= 7;
+    repeated HpSubserviceClass hp_subservice_class = 8;
+
+}
+
+
+message HpmSscTagRequest {
+  // Request for list of ssc which matches the tags
+  repeated string tags = 1;
+}
+
+message HpmSscTagResponse {
+  // List of subservices using the given tag.
+  enum Status {
+    RESP_STATUS_UNKNOWN = 0;
+    RESP_STATUS_SUCCESS = 1;
+    RESP_STATUS_ERROR = 2;
+  }
+
+  // Success or failure
+  Status status = 1;
+  // error message if there is error
+  string error = 2;
+  // list of subservices
+  repeated  SubserviceClass subservices = 3;
+}
+
+message ServiceElementClassRequest {
+
+}
+
+message ServiceElementClassResponse {
+    // List of service element classes
+    enum Status {
+        RESP_STATUS_UNKNOWN = 0;
+        RESP_STATUS_SUCCESS = 1;
+        RESP_STATUS_ERROR = 2;
+    }
+
+    // Success or failure
+    Status status = 1;
+    // error message if there is error
+    string error = 2;
+    // list of service element classes
+    repeated string service_element_classes = 3;
+}
+
+message HpmCacheUpdate {
+  // send notification to invalidate the given id in the cache
+  string hp_elem_id = 1;
+}
