@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package storagepartitionreportapi;
+
+option java_multiple_files = true;
+option java_outer_classname = "reportStoragePartitionApi";
+option java_package = "com.cisco.ems.report.storage.partition.proto";
+option go_package = "github3.cisco.com/ROBOT/robot-api/golang/reportinventory/storagepartition";
+
+message FilterParameters {
+	string key = 1;
+	string value = 2;
+}
+
+enum SortOrderEnum {
+    ASC = 0;
+    DSC = 1;
+}
+
+enum PageLimitEnum {
+    FALSE = 0;
+    TRUE = 1;
+}
+
+message QueryParameters {
+	repeated FilterParameters filter = 1;
+	string sort = 2;
+	SortOrderEnum sortOrder = 3;
+	uint32 page = 4;
+	uint32 pageLimit = 5;
+	PageLimitEnum noPageLimit = 6;
+}
+
+message StoragePartitionGetRequest {
+  string deviceName              =1;
+  string deviceIpaddress         =2;
+  string partitionName           =3;
+  int32 partitionIndex           =4;
+  uint64 capacity                =5;
+  uint64 freeSpace               =6;
+  QueryParameters queryDetails   =7;
+}
+
+message StoragePartitionGetResponse {
+  string deviceName              =1;
+  string deviceIpaddress         =2;
+  string partitionName           =3;
+  int32 partitionIndex           =4;
+  uint64 capacity                =5;
+  uint64 freeSpace               =6;
+}

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package reportinventory;
+
+option java_multiple_files = true;
+option java_outer_classname = "reportInventoryApi";
+option java_package = "com.cisco.ems.report.inventory.proto";
+option go_package = "github3.cisco.com/ROBOT/robot-api/golang/reportinventory";
+
+message FilterParameters {
+	string key = 1;
+	string value = 2;
+}
+
+enum SortOrderEnum {
+    ASC = 0;
+    DSC = 1;
+}
+
+enum PageLimitEnum {
+    FALSE = 0;
+    TRUE = 1;
+}
+
+enum InterfaceIfOperStatus {
+    NOT_APPLICABLE = 0;
+    OPER_UP = 1;
+    OPER_DOWN = 2;
+    OPER_TESTING = 3;
+    OPER_UNKNOWN = 4;
+    DORMANT = 5;
+    NOTPRESENT = 6;    // some component is missing
+    LOWERLAYERDOWN = 7;     // lower layer down
+}
+
+enum InterfaceIfAdminStatus {
+    ADMIN_UNKNOWN = 0;
+    ADMIN_UP = 1;
+    ADMIN_DOWN = 2;
+    ADMIN_TESTING = 3;
+    NOTAPPLICABLE = 4;
+    DOWN_FOR_MAINTENANCE = 5;
+}
+
+message QueryParameters {
+	repeated FilterParameters filter = 1;
+	string sort = 2;
+	SortOrderEnum sortOrder = 3;
+	uint32 page = 4;
+	uint32 pageLimit = 5;
+	PageLimitEnum noPageLimit = 6;
+}
+message InterfaceDetailGetRequest {
+        string deviceName           = 1;
+	string deviceIpAddress      = 2;
+        string interfaceIpAddress   = 3;
+	string portName             = 4;
+        string portDescription      = 5;
+        InterfaceIfOperStatus operationalStatus  = 6;
+	InterfaceIfAdminStatus adminStatus       = 7;
+        string macAddress        = 8;
+	string ifType            = 9;
+        uint32 mtu               = 10;
+	string speed             = 11;
+	QueryParameters queryDetails = 12;
+}
+
+message InterfaceDetailGetResponse {
+	string deviceName           = 1;
+	string deviceIpAddress      = 2;
+        string interfaceIpAddress   = 3;
+	string portName             = 4;
+        string portDescription      = 5;
+        InterfaceIfOperStatus operationalStatus  = 6;
+	InterfaceIfAdminStatus adminStatus       = 7;
+        string macAddress        = 8;
+	string ifType            = 9;
+        uint32 mtu               = 10;
+	string speed             = 11;
+ 	string is_in_maintenance   = 12;
+}
+
