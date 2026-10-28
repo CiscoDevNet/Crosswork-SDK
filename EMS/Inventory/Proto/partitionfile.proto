@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package partitionfilereportapi;
+
+option java_multiple_files = true;
+option java_outer_classname = "reportPartitionFileApi";
+option java_package = "com.cisco.ems.report.partition.file.proto";
+option go_package = "github3.cisco.com/ROBOT/robot-api/golang/reportinventory/partitionfile";
+
+message FilterParameters {
+	string key = 1;
+	string value = 2;
+}
+
+enum SortOrderEnum {
+    ASC = 0;
+    DSC = 1;
+}
+
+enum PageLimitEnum {
+    FALSE = 0;
+    TRUE = 1;
+}
+
+message QueryParameters {
+	repeated FilterParameters filter = 1;
+	string sort = 2;
+	SortOrderEnum sortOrder = 3;
+	uint32 page = 4;
+	uint32 pageLimit = 5;
+	PageLimitEnum noPageLimit = 6;
+}
+
+message PartitionFileGetRequest {
+  string deviceName              =1;
+  string deviceIpaddress         =2;
+  string partitionName           =3;
+  string fileName                =4;
+  int32 fileIndex                =5;
+  uint64 fileSize                =6;
+  QueryParameters queryDetails   =7;
+}
+
+message PartitionFileGetResponse {
+  string deviceName              =1;
+  string deviceIpaddress         =2;
+  string partitionName           =3;
+  string fileName                =4;
+  int32 fileIndex                =5;
+  uint64 fileSize                =6;
+}
+
